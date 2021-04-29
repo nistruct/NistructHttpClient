@@ -1,5 +1,5 @@
 //
-//  WebRepository.swift
+//  HttpClient.swift
 //
 //  Created by Nikola Nikolic on 3/18/20.
 //  Copyright © 2020 Nistruct. All rights reserved.
