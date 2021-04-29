@@ -1,0 +1,7 @@
+ToDo
+
+1. Specify Authorization Type
+2. Multiple Implementations of the HttpClient protocol
+    2.1. Authorized
+    2.2. Unauthorized
+3.
