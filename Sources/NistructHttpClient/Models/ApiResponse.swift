@@ -7,14 +7,14 @@
 
 import Foundation
 
-struct ApiResponse<Data: Decodable>: Decodable {
+public struct ApiResponse<Data: Decodable>: Decodable {
     let statusCode: Int
     let status: String
     let message: String?
     let data: Data?
     let errorInfo: ApiErrorInfo?
     
-    init(from decoder: Decoder) throws {
+    public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         
         let statusCodeValue = try container.decode(Int.self, forKey: .statusCode)

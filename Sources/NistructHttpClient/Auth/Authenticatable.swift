@@ -8,6 +8,6 @@
 import Foundation
 import Combine
 
-protocol Authenticatable {
+public protocol Authenticatable {
     func signOut() -> AnyPublisher<Void, Error>
 }

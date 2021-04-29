@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct Token {
+public struct Token {
     let value: String
     let expiration: Date
     

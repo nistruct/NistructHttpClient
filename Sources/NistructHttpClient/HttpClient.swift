@@ -8,14 +8,14 @@
 import Foundation
 import Combine
 
-protocol HttpClient {
+public protocol HttpClient {
     var session: URLSession { get }
     var baseURL: String { get }
     var authenticator: Authenticatable { get }
     var tokenProvider: TokenProvidable { get }
 }
 
-extension HttpClient {
+public extension HttpClient {
     func callApi<T: Decodable>(endpoint: HttpEndpoint, body: [String: AnyObject]? = nil) -> AnyPublisher<ApiResponse<T>, Error> {
         endpoint.printRequest(body: body)
         

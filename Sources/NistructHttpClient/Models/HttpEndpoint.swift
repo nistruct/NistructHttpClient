@@ -7,13 +7,13 @@
 
 import Foundation
 
-protocol HttpEndpoint {
+public protocol HttpEndpoint {
     var path: String { get }
     var method: HttpMethod { get }
     var headers: [String: String]? { get }
 }
 
-extension HttpEndpoint {
+public extension HttpEndpoint {
     func urlRequest(baseURL: String, body: [String: AnyObject]? = nil, authorizationHeader: String? = nil) throws -> URLRequest {
         guard let url = URL(string: baseURL + path) else {
             throw HttpError.invalidURL

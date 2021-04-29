@@ -1,25 +1,25 @@
 import Foundation
 
-struct NistructHttpClient {
+public struct NistructHttpClient {
     private let url: String
     private let anSession: URLSession
     private let anAuthenticator: Authenticatable
     private let aTokenProvider: TokenProvidable
     
-    init(baseUrl: String,
-         session: URLSession = SessionHandler.defaultSession,
-         authenticator: Authenticatable,
-         tokenProvider: TokenProvidable) {
+    public init(baseUrl: String,
+                session: URLSession = SessionHandler.defaultSession,
+                authenticator: Authenticatable,
+                tokenProvider: TokenProvidable) {
         self.url = baseUrl
         self.anSession = session
         self.anAuthenticator = authenticator
         self.aTokenProvider = tokenProvider
     }
     
-    static func setup(baseUrl: String,
-                      session: URLSession = SessionHandler.defaultSession,
-                      authenticator: Authenticatable,
-                      tokenProvider: TokenProvidable) -> NistructHttpClient {
+    public static func setup(baseUrl: String,
+                             session: URLSession = SessionHandler.defaultSession,
+                             authenticator: Authenticatable,
+                             tokenProvider: TokenProvidable) -> NistructHttpClient {
         NistructHttpClient(baseUrl: baseUrl,
                            session: session,
                            authenticator: authenticator,
@@ -28,8 +28,8 @@ struct NistructHttpClient {
 }
 
 extension NistructHttpClient: HttpClient {
-    var session: URLSession { anSession }
-    var baseURL: String { url }
-    var authenticator: Authenticatable { anAuthenticator }
-    var tokenProvider: TokenProvidable { aTokenProvider }
+    public var session: URLSession { anSession }
+    public var baseURL: String { url }
+    public var authenticator: Authenticatable { anAuthenticator }
+    public var tokenProvider: TokenProvidable { aTokenProvider }
 }

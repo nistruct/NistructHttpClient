@@ -8,7 +8,7 @@
 import Foundation
 import Combine
 
-protocol TokenProvidable {
+public protocol TokenProvidable {
     func save(_ token: Token) -> AnyPublisher<Void, Never>
     func fetchToken() -> AnyPublisher<Token, Error>
     func clearLocalToken()

@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct HttpHeader {
+public struct HttpHeader {
     static let ContentType      = "Content-Type"
     static let ContentLength    = "Content-Length"
     static let Accept           = "Accept"

@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum HttpError: Error {
+public enum HttpError: Error {
     case invalidURL
     case unauthorized
     case invalidRequest
@@ -22,7 +22,7 @@ enum HttpError: Error {
 typealias HTTPCode = Int
 typealias HTTPCodes = Range<HTTPCode>
 
-extension HTTPCodes {
+public extension HTTPCodes {
     static let success              = 200 ..< 300
     static let unauthorized         = 401
     static let preconditionRequired = 428
@@ -74,7 +74,7 @@ extension HttpError {
 }
 
 extension HttpError: LocalizedError {
-    var errorDescription: String? {
+    public var errorDescription: String? {
         switch self {
         case .serverError(_, let message): return message
         case .preconditionRequired(let message): return message
