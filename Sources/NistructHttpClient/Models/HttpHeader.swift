@@ -7,8 +7,8 @@
 
 import Foundation
 
-public struct HttpHeader {
-    static let ContentType      = "Content-Type"
+open struct HttpHeader {
+    open static let ContentType      = "Content-Type"
     static let ContentLength    = "Content-Length"
     static let Accept           = "Accept"
     static let Authorization    = "Authorization"
