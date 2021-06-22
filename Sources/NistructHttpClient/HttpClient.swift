@@ -11,7 +11,6 @@ import Combine
 public protocol HttpClient {
     var session: URLSession { get }
     var baseURL: String { get }
-    var authenticator: Authenticatable { get }
     var tokenProvider: TokenProvidable { get }
 }
 
@@ -102,7 +101,7 @@ private extension HttpClient {
         switch error {
         case HttpError.unauthorized:
             print("**** UNAUTHORIZED -> SIGN OUT")
-            _ = self.authenticator.signOut()
+//            _ = self.authenticator.signOut()
             break
         case HttpError.upgradeRequired:
             print("**** UPDATE NEEDED")
