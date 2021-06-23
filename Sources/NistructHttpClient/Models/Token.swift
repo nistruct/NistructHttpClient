@@ -14,4 +14,9 @@ public struct Token {
     public var isValid: Bool {
         expiration > Date()
     }
+    
+    public init(value: String, expiration: Date) {
+        self.value = value
+        self.expiration = expiration
+    }
 }
