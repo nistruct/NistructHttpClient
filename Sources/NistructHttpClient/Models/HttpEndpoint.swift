@@ -14,7 +14,10 @@ public protocol HttpEndpoint {
 }
 
 public extension HttpEndpoint {
-    func urlRequest(baseURL: String, body: [String: AnyObject]? = nil, authorizationHeader: String? = nil) throws -> URLRequest {
+    func urlRequest(baseURL: String,
+                    body: [String: AnyObject]? = nil,
+                    authorizationHeader: String? = nil,
+                    authorizationHeaderType: HttpHeader.AuthType = .Bearer) throws -> URLRequest {
         guard let url = URL(string: baseURL + path) else {
             throw HttpError.invalidURL
         }
@@ -24,7 +27,7 @@ public extension HttpEndpoint {
         
         if let authHeader = authorizationHeader {
             var headerFields = headers ?? [String: String]()
-            headerFields[HttpHeader.Authorization] = "\(HttpHeader.Bearer) \(authHeader)"
+            headerFields[HttpHeader.Authorization] = "\(authorizationHeaderType) \(authHeader)"
             headerFields[HttpHeader.UserAgent] =  userAgentValue()
             request.allHTTPHeaderFields = headerFields
         } else {
