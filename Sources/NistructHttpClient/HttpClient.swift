@@ -56,7 +56,7 @@ public extension HttpClient {
                 return self.session
                     .dataTaskPublisher(for: request)
                     .retry(3)
-                    .processApiResponse(url: request.url)
+                    .processResponse(url: request.url)
             }
             .handleEvents(receiveCompletion: { _ in
                 let diff = CFAbsoluteTimeGetCurrent() - start
@@ -83,7 +83,7 @@ public extension HttpClient {
         return self.session
             .dataTaskPublisher(for: request)
             .retry(3)
-            .processApiResponse(url: request.url)
+            .processResponse(url: request.url)
             .handleEvents(receiveCompletion: { _ in
                 let diff = CFAbsoluteTimeGetCurrent() - start
                 print("\(diff) sec")
@@ -114,7 +114,7 @@ private extension HttpClient {
 }
 
 private extension Publisher where Output == URLSession.DataTaskPublisher.Output {
-    func processResponse<T: Decodable>() -> AnyPublisher<T, Error> {
+    func processResponse<T: Decodable>(url: URL? = nil) -> AnyPublisher<T, Error> {
         return tryMap {
             guard let statusCode = ($0.response as? HTTPURLResponse)?.statusCode else {
                 throw HttpError.unexpectedResponse
@@ -130,6 +130,7 @@ private extension Publisher where Output == URLSession.DataTaskPublisher.Output 
             }
             return $0.data
         }
+        .printResponse(url: url)
         .decode(type: T.self, decoder: JSONDecoder())
         .receive(on: DispatchQueue.main)
         .eraseToAnyPublisher()
