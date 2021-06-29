@@ -69,12 +69,12 @@ public extension HttpClient {
             .holdResponse(toBeAtLeast: 0.5)
     }
     
-    func unauthorizedCall<T: Decodable>(endpoint: HttpEndpoint, body: [String: AnyObject]? = nil) -> AnyPublisher<T, Error> {
+    func unauthorizedCall<T: Decodable>(endpoint: HttpEndpoint, body: [String: AnyObject]? = nil, authorizationHeader: String? = nil) -> AnyPublisher<T, Error> {
         endpoint.printRequest(body: body)
         
         let start = CFAbsoluteTimeGetCurrent()
         
-        guard let request = try? endpoint.urlRequest(baseURL: self.baseURL, body: body) else {
+        guard let request = try? endpoint.urlRequest(baseURL: self.baseURL, body: body, authorizationHeader: authorizationHeader) else {
             return Future<T, Error> { promise in
                 promise(.failure(HttpError.invalidRequest))
             }.eraseToAnyPublisher()
