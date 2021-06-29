@@ -103,7 +103,9 @@ public extension HttpClient {
         
         let start = CFAbsoluteTimeGetCurrent()
         
-        guard let request = try? endpoint.urlRequest(baseURL: self.baseURL, body: body, authorizationHeader: authorizationHeader) else {
+        guard let request = try? endpoint.urlRequest(baseURL: self.baseURL, body: body,
+                                                     authorizationHeader: authorizationHeader,
+                                                     authorizationHeaderType: authorizationType) else {
             return Future<T, Error> { promise in
                 promise(.failure(HttpError.invalidRequest))
             }.eraseToAnyPublisher()
