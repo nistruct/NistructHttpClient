@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct ContentType {
-    public static let Json          = "application/json"
-    public static let UrlEncoded    = "application/x-www-form-urlencoded"
+public enum ContentType: String {
+    case Json          = "application/json"
+    case UrlEncoded    = "application/x-www-form-urlencoded"
 }

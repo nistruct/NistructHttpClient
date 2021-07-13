@@ -13,4 +13,5 @@ public protocol TokenProvidable {
     func fetchToken() -> AnyPublisher<Token, Error>
     func clearLocalToken()
     func clear() -> AnyPublisher<Void, Never>
+    func fetchClientToken() -> AnyPublisher<Token, Error>
 }

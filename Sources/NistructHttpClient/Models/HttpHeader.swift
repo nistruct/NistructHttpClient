@@ -15,9 +15,10 @@ public struct HttpHeader {
     public static let AuthorizationType = AuthType.Bearer
     public static let UserAgent        = "User-Agent"
     
-    public enum AuthType {
-        case Bearer
-        case Basic
-    }
+}
+
+public enum AuthType {
+    case Bearer
+    case Basic
 }
 
