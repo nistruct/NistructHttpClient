@@ -210,7 +210,7 @@ private extension Publisher where Output == URLSession.DataTaskPublisher.Output 
         .decode(type: ApiResponse<T>.self, decoder: JSONDecoder())
         .tryMap {
             guard let data = $0.data else {
-                if HTTPCodes.success.contains($0.statusCode) {
+                if HTTPCodes.success.contains($0.statusCode ?? 200) {
                     return EmptyResponse() as! T
                 }
                 throw $0.error
