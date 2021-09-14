@@ -45,7 +45,7 @@ extension HttpError {
             return nil
         }
         
-        guard let error = data.asApiError() else {
+		guard let error = data.asApiError(code: code) else {
             return nil
         }
         
@@ -95,15 +95,16 @@ extension ApiResponse {
         } else if statusCode == HTTPCodes.notFound {
             return .notFound(message: errorInfo?.message)
         }
-        return .serverError(code: statusCode, message: errorInfo?.message)
+        return .serverError(code: statusCode ?? 200, message: errorInfo?.message ?? message)
     }
 }
 
 private extension Data {
-    func asApiError() -> HttpError? {
-        guard let response = try? JSONDecoder().decode(ApiResponse<EmptyResponse>.self, from: self) else {
+	func asApiError(code: Int) -> HttpError? {
+        guard var response = try? JSONDecoder().decode(ApiResponse<EmptyResponse>.self, from: self) else {
             return nil
         }
+		response.statusCode = code
         return response.error
     }
 }
