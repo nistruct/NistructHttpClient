@@ -8,10 +8,18 @@
 import Foundation
 
 public struct Token {
-    let value: String
-    let expiration: Date
+    public let value: String
+    public let expiration: Date
     
-    var isValid: Bool {
+    public let refreshToken: String?
+    
+    public var isValid: Bool {
         expiration > Date()
+    }
+    
+    public init(value: String, expiration: Date, refreshToken: String? = nil) {
+        self.value = value
+        self.expiration = expiration
+        self.refreshToken = refreshToken
     }
 }

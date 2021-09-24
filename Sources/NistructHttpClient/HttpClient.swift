@@ -11,7 +11,6 @@ import Combine
 public protocol HttpClient {
     var session: URLSession { get }
     var baseURL: String { get }
-    var authenticator: Authenticatable { get }
     var tokenProvider: TokenProvidable { get }
 }
 
@@ -57,7 +56,34 @@ public extension HttpClient {
                 return self.session
                     .dataTaskPublisher(for: request)
                     .retry(3)
-                    .processApiResponse(url: request.url)
+                    .processResponse(url: request.url)
+            }
+            .handleEvents(receiveCompletion: { _ in
+                let diff = CFAbsoluteTimeGetCurrent() - start
+                print("\(diff) sec")
+            })
+            .mapError {
+                handleImportantErrors($0)
+                return $0
+            }
+            .holdResponse(toBeAtLeast: 0.5)
+    }
+    
+    func clientCall<T: Decodable>(endpoint: HttpEndpoint, body: [String: AnyObject]? = nil) -> AnyPublisher<T, Error> {
+        endpoint.printRequest(body: body)
+        
+        let start = CFAbsoluteTimeGetCurrent()
+        
+        return tokenProvider
+            .fetchClientToken()
+            .tryMap { token in
+                try endpoint.urlRequest(baseURL: self.baseURL, body: body, authorizationHeader: token.value)
+            }
+            .flatMap { request in
+                return self.session
+                    .dataTaskPublisher(for: request)
+                    .retry(3)
+                    .processResponse(url: request.url)
             }
             .handleEvents(receiveCompletion: { _ in
                 let diff = CFAbsoluteTimeGetCurrent() - start
@@ -84,7 +110,34 @@ public extension HttpClient {
         return self.session
             .dataTaskPublisher(for: request)
             .retry(3)
-            .processApiResponse(url: request.url)
+            .processResponse(url: request.url)
+            .handleEvents(receiveCompletion: { _ in
+                let diff = CFAbsoluteTimeGetCurrent() - start
+                print("\(diff) sec")
+            })
+            .mapError {
+                handleImportantErrors($0)
+                return $0
+            }
+            .holdResponse(toBeAtLeast: 0.5)
+    }
+    
+    func authorizedCall<T: Decodable>(endpoint: HttpEndpoint,
+                                      body: [String: AnyObject]? = nil) -> AnyPublisher<T, Error> {
+        endpoint.printRequest(body: body)
+        
+        let start = CFAbsoluteTimeGetCurrent()
+        
+        guard let request = try? endpoint.urlRequest(baseURL: self.baseURL, body: body) else {
+            return Future<T, Error> { promise in
+                promise(.failure(HttpError.invalidRequest))
+            }.eraseToAnyPublisher()
+        }
+        
+        return self.session
+            .dataTaskPublisher(for: request)
+            .retry(3)
+            .processResponse(url: request.url)
             .handleEvents(receiveCompletion: { _ in
                 let diff = CFAbsoluteTimeGetCurrent() - start
                 print("\(diff) sec")
@@ -102,7 +155,7 @@ private extension HttpClient {
         switch error {
         case HttpError.unauthorized:
             print("**** UNAUTHORIZED -> SIGN OUT")
-            _ = self.authenticator.signOut()
+//            _ = self.authenticator.signOut()
             break
         case HttpError.upgradeRequired:
             print("**** UPDATE NEEDED")
@@ -115,7 +168,7 @@ private extension HttpClient {
 }
 
 private extension Publisher where Output == URLSession.DataTaskPublisher.Output {
-    func processResponse<T: Decodable>() -> AnyPublisher<T, Error> {
+    func processResponse<T: Decodable>(url: URL? = nil) -> AnyPublisher<T, Error> {
         return tryMap {
             guard let statusCode = ($0.response as? HTTPURLResponse)?.statusCode else {
                 throw HttpError.unexpectedResponse
@@ -131,6 +184,7 @@ private extension Publisher where Output == URLSession.DataTaskPublisher.Output 
             }
             return $0.data
         }
+        .printResponse(url: url)
         .decode(type: T.self, decoder: JSONDecoder())
         .receive(on: DispatchQueue.main)
         .eraseToAnyPublisher()
@@ -156,7 +210,7 @@ private extension Publisher where Output == URLSession.DataTaskPublisher.Output 
         .decode(type: ApiResponse<T>.self, decoder: JSONDecoder())
         .tryMap {
             guard let data = $0.data else {
-                if HTTPCodes.success.contains($0.statusCode) {
+                if HTTPCodes.success.contains($0.statusCode ?? 200) {
                     return EmptyResponse() as! T
                 }
                 throw $0.error

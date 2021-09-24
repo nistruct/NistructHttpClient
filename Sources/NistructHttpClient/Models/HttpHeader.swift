@@ -8,10 +8,17 @@
 import Foundation
 
 public struct HttpHeader {
-    static let ContentType      = "Content-Type"
-    static let ContentLength    = "Content-Length"
-    static let Accept           = "Accept"
-    static let Authorization    = "Authorization"
-    static let Bearer           = "Bearer"
-    static let UserAgent        = "User-Agent"
+    public static let ContentType      = "Content-Type"
+    public static let ContentLength    = "Content-Length"
+    public static let Accept           = "Accept"
+    public static let Authorization    = "Authorization"
+    public static let AuthorizationType = AuthType.Bearer
+    public static let UserAgent        = "User-Agent"
+    
 }
+
+public enum AuthType {
+    case Bearer
+    case Basic
+}
+
