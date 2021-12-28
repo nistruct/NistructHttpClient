@@ -16,6 +16,8 @@ public enum HttpError: Error {
     case notFound(message: String?)
     case alreadyDone(message: String?)
     case serverError(code: Int, message: String?)
+    case parserError(message: String?)
+    case generalError(message: String?)
     case upgradeRequired
 }
 
@@ -81,6 +83,8 @@ extension HttpError: LocalizedError {
         case .unauthorized: return "User is Unauthorized"
         case .notFound(let message): return message
         case .alreadyDone(let message): return message
+        case .parserError(let message): return message
+        case .generalError(let message): return message
         default: return "Unexpected error"
         }
     }

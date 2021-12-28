@@ -16,7 +16,8 @@ public protocol HttpClient {
 }
 
 public extension HttpClient {
-    func callApi<T: Decodable>(endpoint: HttpEndpoint, body: [String: AnyObject]? = nil) -> AnyPublisher<ApiResponse<T>, Error> {
+    func callApi<T: Decodable>(endpoint: HttpEndpoint,
+                               body: [String: AnyObject]? = nil) -> AnyPublisher<ApiResponse<T>, HttpError> {
         endpoint.printRequest(body: body)
         
         let start = CFAbsoluteTimeGetCurrent()
@@ -40,12 +41,12 @@ public extension HttpClient {
             })
             .mapError {
                 handleImportantErrors($0)
-                return $0
+                return $0.httpError
             }
             .holdResponse(toBeAtLeast: 0.5)
     }
     
-    func call<T: Decodable>(endpoint: HttpEndpoint, body: [String: AnyObject]? = nil) -> AnyPublisher<T, Error> {
+    func call<T: Decodable>(endpoint: HttpEndpoint, body: [String: AnyObject]? = nil) -> AnyPublisher<T, HttpError> {
         endpoint.printRequest(body: body)
         
         let start = CFAbsoluteTimeGetCurrent()
@@ -58,7 +59,7 @@ public extension HttpClient {
                                         authorizationHeader: .bearer(token: token.value))
             }
             .flatMap { request in
-                return self.session
+                self.session
                     .dataTaskPublisher(for: request)
                     .retry(3)
                     .processResponse(url: request.url)
@@ -69,14 +70,14 @@ public extension HttpClient {
             })
             .mapError {
                 handleImportantErrors($0)
-                return $0
+                return $0.httpError
             }
             .holdResponse(toBeAtLeast: 0.5)
     }
     
     func unauthorizedCall<T: Decodable>(endpoint: HttpEndpoint,
                                         body: [String: AnyObject]? = nil,
-                                        authorizationToken: String? = nil) -> AnyPublisher<T, Error> {
+                                        authorizationToken: String? = nil) -> AnyPublisher<T, HttpError> {
         endpoint.printRequest(body: body)
         
         let start = CFAbsoluteTimeGetCurrent()
@@ -85,8 +86,8 @@ public extension HttpClient {
         guard let request = try? endpoint.urlRequest(baseURL: baseURL,
                                                      body: body,
                                                      authorizationHeader: authHeader) else {
-            return Future<T, Error> { promise in
-                promise(.failure(HttpError.invalidRequest))
+            return Future<T, HttpError> { promise in
+                promise(.failure(.invalidRequest))
             }.eraseToAnyPublisher()
         }
         
@@ -100,7 +101,7 @@ public extension HttpClient {
             })
             .mapError {
                 handleImportantErrors($0)
-                return $0
+                return $0.httpError
             }
             .holdResponse(toBeAtLeast: 0.5)
     }
@@ -202,5 +203,14 @@ extension Publisher {
         return zip(timer)
             .map { $0.0 }
             .eraseToAnyPublisher()
+    }
+}
+
+extension Error {
+    var httpError: HttpError {
+        guard let httpError = self as? HttpError else {
+            return .generalError(message: localizedDescription)
+        }
+        return httpError
     }
 }
