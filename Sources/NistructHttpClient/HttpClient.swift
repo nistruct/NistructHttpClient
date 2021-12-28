@@ -24,13 +24,15 @@ public extension HttpClient {
         return tokenProvider
             .fetchToken()
             .tryMap { token in
-                try endpoint.urlRequest(baseURL: self.baseURL, body: body, authorizationHeader: token.value)
+                try endpoint.urlRequest(baseURL: baseURL,
+                                        body: body,
+                                        authorizationHeader: .bearer(token: token.value))
             }
             .flatMap { request in
                 return self.session
                     .dataTaskPublisher(for: request)
                     .retry(3)
-                    .processResponse()
+                    .processApiResponse()
             }
             .handleEvents(receiveCompletion: { _ in
                 let diff = CFAbsoluteTimeGetCurrent() - start
@@ -51,13 +53,15 @@ public extension HttpClient {
         return tokenProvider
             .fetchToken()
             .tryMap { token in
-                try endpoint.urlRequest(baseURL: self.baseURL, body: body, authorizationHeader: token.value)
+                try endpoint.urlRequest(baseURL: baseURL,
+                                        body: body,
+                                        authorizationHeader: .bearer(token: token.value))
             }
             .flatMap { request in
                 return self.session
                     .dataTaskPublisher(for: request)
                     .retry(3)
-                    .processApiResponse(url: request.url)
+                    .processResponse(url: request.url)
             }
             .handleEvents(receiveCompletion: { _ in
                 let diff = CFAbsoluteTimeGetCurrent() - start
@@ -70,21 +74,26 @@ public extension HttpClient {
             .holdResponse(toBeAtLeast: 0.5)
     }
     
-    func unauthorizedCall<T: Decodable>(endpoint: HttpEndpoint, body: [String: AnyObject]? = nil) -> AnyPublisher<T, Error> {
+    func unauthorizedCall<T: Decodable>(endpoint: HttpEndpoint,
+                                        body: [String: AnyObject]? = nil,
+                                        authorizationToken: String? = nil) -> AnyPublisher<T, Error> {
         endpoint.printRequest(body: body)
         
         let start = CFAbsoluteTimeGetCurrent()
+        let authHeader: AuthorizationHeader? = authorizationToken != nil ? .basic(token: authorizationToken!) : nil
         
-        guard let request = try? endpoint.urlRequest(baseURL: self.baseURL, body: body) else {
+        guard let request = try? endpoint.urlRequest(baseURL: baseURL,
+                                                     body: body,
+                                                     authorizationHeader: authHeader) else {
             return Future<T, Error> { promise in
                 promise(.failure(HttpError.invalidRequest))
             }.eraseToAnyPublisher()
         }
         
-        return self.session
+        return session
             .dataTaskPublisher(for: request)
             .retry(3)
-            .processApiResponse(url: request.url)
+            .processResponse(url: request.url)
             .handleEvents(receiveCompletion: { _ in
                 let diff = CFAbsoluteTimeGetCurrent() - start
                 print("\(diff) sec")
@@ -115,8 +124,8 @@ private extension HttpClient {
 }
 
 private extension Publisher where Output == URLSession.DataTaskPublisher.Output {
-    func processResponse<T: Decodable>() -> AnyPublisher<T, Error> {
-        return tryMap {
+    func processResponse<T: Decodable>(url: URL? = nil) -> AnyPublisher<T, Error> {
+        tryMap {
             guard let statusCode = ($0.response as? HTTPURLResponse)?.statusCode else {
                 throw HttpError.unexpectedResponse
             }
@@ -131,13 +140,14 @@ private extension Publisher where Output == URLSession.DataTaskPublisher.Output 
             }
             return $0.data
         }
+        .printResponse(url: url)
         .decode(type: T.self, decoder: JSONDecoder())
         .receive(on: DispatchQueue.main)
         .eraseToAnyPublisher()
     }
     
     func processApiResponse<T: Decodable>(url: URL? = nil) -> AnyPublisher<T, Error> {
-        return tryMap {
+        tryMap {
             guard let statusCode = ($0.response as? HTTPURLResponse)?.statusCode else {
                 throw HttpError.unexpectedResponse
             }
@@ -156,7 +166,7 @@ private extension Publisher where Output == URLSession.DataTaskPublisher.Output 
         .decode(type: ApiResponse<T>.self, decoder: JSONDecoder())
         .tryMap {
             guard let data = $0.data else {
-                if HTTPCodes.success.contains($0.statusCode) {
+                if HTTPCodes.success.contains($0.statusCode ?? 200) {
                     return EmptyResponse() as! T
                 }
                 throw $0.error
@@ -174,10 +184,10 @@ extension Publisher where Output == Data {
             guard let json = data.toJson() else {
                 return
             }
-            Swift.print("\n----")
+            Swift.print("\n----API RESPONSE----")
             Swift.print(url?.absoluteString ?? "")
             Swift.print(json)
-            Swift.print("----\n")
+            Swift.print("----API RESPONSE----\n")
         })
         .eraseToAnyPublisher()
     }

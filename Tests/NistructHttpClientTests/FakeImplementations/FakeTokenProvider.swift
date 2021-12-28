@@ -28,4 +28,14 @@ class FakeTokenProvider: TokenProvidable {
         //TODO: Missing implementation
         Empty().eraseToAnyPublisher()
     }
+    
+    func fetchClientToken() -> AnyPublisher<Token, Error> {
+        //TODO: Missing implementation
+        Empty().eraseToAnyPublisher()
+    }
+    
+    func refreshToken() -> AnyPublisher<Token, Error> {
+        //TODO: Missing implementation
+        Empty().eraseToAnyPublisher()
+    }
 }

@@ -11,10 +11,17 @@ public protocol HttpEndpoint {
     var path: String { get }
     var method: HttpMethod { get }
     var headers: [String: String]? { get }
+    var contentType: ContentType { get }
 }
 
 public extension HttpEndpoint {
-    func urlRequest(baseURL: String, body: [String: AnyObject]? = nil, authorizationHeader: String? = nil) throws -> URLRequest {
+    var contentType: ContentType { .json }
+}
+
+public extension HttpEndpoint {
+    func urlRequest(baseURL: String,
+                    body: [String: AnyObject]? = nil,
+                    authorizationHeader: AuthorizationHeader? = nil) throws -> URLRequest {
         guard let url = URL(string: baseURL + path) else {
             throw HttpError.invalidURL
         }
@@ -22,17 +29,15 @@ public extension HttpEndpoint {
         var request = URLRequest(url: url)
         request.httpMethod = method.rawValue
         
+        var headerFields = headers ?? [String: String]()
+        headerFields[HttpHeader.UserAgent] =  userAgentValue()
+        headerFields[HttpHeader.ContentType] = contentType.rawValue
+        
         if let authHeader = authorizationHeader {
-            var headerFields = headers ?? [String: String]()
-            headerFields[HttpHeader.Authorization] = "\(HttpHeader.Bearer) \(authHeader)"
-            headerFields[HttpHeader.UserAgent] =  userAgentValue()
-            request.allHTTPHeaderFields = headerFields
-        } else {
-            var headerFields = headers ?? [String: String]()
-            headerFields[HttpHeader.UserAgent] = userAgentValue()
-            request.allHTTPHeaderFields = headerFields
+            headerFields[HttpHeader.Authorization] = authHeader.value
         }
-                
+        
+        request.allHTTPHeaderFields = headerFields
         request.httpBody = try data(from: body)
         return request
     }
@@ -56,7 +61,17 @@ private extension HttpEndpoint {
         guard let params = params else {
             return nil
         }
-        return try JSONSerialization.data(withJSONObject: params, options: JSONSerialization.WritingOptions())
+        
+        switch contentType {
+        case .json:
+            return try JSONSerialization
+                .data(withJSONObject: params, options: JSONSerialization.WritingOptions())
+        case .urlEncoded:
+            return params
+                .map { "\($0.key)=\($0.value)" }
+                .joined(separator: "&")
+                .data(using: .utf8)
+        }
     }
 }
 
