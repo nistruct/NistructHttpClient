@@ -9,7 +9,8 @@ import Foundation
 import Combine
 
 public protocol TokenProvidable {
-    func save(_ token: Token) -> AnyPublisher<Void, Never>
+    func saveToken(_ token: Token) -> AnyPublisher<Void, Never>
+    func saveRefreshToken(_ refresh: String) -> AnyPublisher<Void, Never>
     func fetchToken() -> AnyPublisher<Token, Error>
     func clearLocalToken()
     func clear() -> AnyPublisher<Void, Never>
