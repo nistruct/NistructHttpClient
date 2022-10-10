@@ -10,10 +10,10 @@ import Combine
 @testable import NistructHttpClient
 
 class FakeAuthenticator: Authenticatable {
-    var error: Error?
+    var error: HttpError?
     
-    func signOut() -> AnyPublisher<Void, Error> {
-        Future<Void, Error> { promise in
+    func signOut() -> AnyPublisher<Void, HttpError> {
+        Future<Void, HttpError> { promise in
             if let error = self.error {
                 promise(.failure(error))
             } else {
