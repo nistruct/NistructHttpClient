@@ -9,5 +9,5 @@ import Foundation
 import Combine
 
 public protocol Authenticatable {
-    func signOut() -> AnyPublisher<Void, HttpError>
+    func signOut() -> AnyPublisher<EmptyResponse, HttpError>
 }

@@ -12,12 +12,12 @@ import Combine
 class FakeAuthenticator: Authenticatable {
     var error: HttpError?
     
-    func signOut() -> AnyPublisher<Void, HttpError> {
-        Future<Void, HttpError> { promise in
+    func signOut() -> AnyPublisher<EmptyResponse, HttpError> {
+        Future<EmptyResponse, HttpError> { promise in
             if let error = self.error {
                 promise(.failure(error))
             } else {
-                promise(.success(()))
+                promise(.success(EmptyResponse()))
             }
         }.eraseToAnyPublisher()
     }
