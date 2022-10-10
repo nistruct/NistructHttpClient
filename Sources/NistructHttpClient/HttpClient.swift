@@ -18,8 +18,7 @@ public protocol HttpClient {
 public extension HttpClient {
     func callApi<T: Decodable>(endpoint: HttpEndpoint,
                                body: [String: AnyObject]? = nil) -> AnyPublisher<ApiResponse<T>, HttpError> {
-        print("Request URL: \(baseURL + endpoint.path)")
-        endpoint.printRequest(body: body)
+        endpoint.printRequest(url: baseURL, body: body)
         
         let start = CFAbsoluteTimeGetCurrent()
         
@@ -48,8 +47,7 @@ public extension HttpClient {
     }
     
     func call<T: Decodable>(endpoint: HttpEndpoint, body: [String: AnyObject]? = nil) -> AnyPublisher<T, HttpError> {
-        print("Request URL: \(baseURL + endpoint.path)")
-        endpoint.printRequest(body: body)
+        endpoint.printRequest(url: baseURL, body: body)
         
         let start = CFAbsoluteTimeGetCurrent()
         
@@ -80,8 +78,7 @@ public extension HttpClient {
     func unauthorizedCall<T: Decodable>(endpoint: HttpEndpoint,
                                         body: [String: AnyObject]? = nil,
                                         authorizationToken: String? = nil) -> AnyPublisher<T, HttpError> {
-        print("Request URL: \(baseURL + endpoint.path)")
-        endpoint.printRequest(body: body)
+        endpoint.printRequest(url: baseURL, body: body)
         
         let start = CFAbsoluteTimeGetCurrent()
         let authHeader: AuthorizationHeader? = authorizationToken != nil ? .basic(token: authorizationToken!) : nil

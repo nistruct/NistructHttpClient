@@ -42,9 +42,9 @@ public extension HttpEndpoint {
         return request
     }
     
-    func printRequest(body: [String: AnyObject]? = nil) {
+    func printRequest(url: String, body: [String: AnyObject]? = nil) {
         print("\n****REQUEST****")
-        print("Path: \(path)")
+        print("Path: \(url)\(path)")
         print("Method: \(method)")
         
         if let body = body, !body.isEmpty {
