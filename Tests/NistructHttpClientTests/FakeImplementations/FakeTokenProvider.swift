@@ -10,7 +10,12 @@ import Combine
 @testable import NistructHttpClient
 
 class FakeTokenProvider: TokenProvidable {
-    func save(_ token: Token) -> AnyPublisher<Void, Never> {
+    func saveToken(_ token: Token) -> AnyPublisher<Void, Never> {
+        //TODO: Missing implementation
+        Empty().eraseToAnyPublisher()
+    }
+    
+    func saveRefreshToken(_ refresh: String) -> AnyPublisher<Void, Never> {
         //TODO: Missing implementation
         Empty().eraseToAnyPublisher()
     }

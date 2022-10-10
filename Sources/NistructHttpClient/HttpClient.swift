@@ -18,6 +18,7 @@ public protocol HttpClient {
 public extension HttpClient {
     func callApi<T: Decodable>(endpoint: HttpEndpoint,
                                body: [String: AnyObject]? = nil) -> AnyPublisher<ApiResponse<T>, HttpError> {
+        print("Request URL: \(baseURL + endpoint.path)")
         endpoint.printRequest(body: body)
         
         let start = CFAbsoluteTimeGetCurrent()
@@ -47,6 +48,7 @@ public extension HttpClient {
     }
     
     func call<T: Decodable>(endpoint: HttpEndpoint, body: [String: AnyObject]? = nil) -> AnyPublisher<T, HttpError> {
+        print("Request URL: \(baseURL + endpoint.path)")
         endpoint.printRequest(body: body)
         
         let start = CFAbsoluteTimeGetCurrent()
@@ -78,6 +80,7 @@ public extension HttpClient {
     func unauthorizedCall<T: Decodable>(endpoint: HttpEndpoint,
                                         body: [String: AnyObject]? = nil,
                                         authorizationToken: String? = nil) -> AnyPublisher<T, HttpError> {
+        print("Request URL: \(baseURL + endpoint.path)")
         endpoint.printRequest(body: body)
         
         let start = CFAbsoluteTimeGetCurrent()
@@ -132,7 +135,7 @@ private extension Publisher where Output == URLSession.DataTaskPublisher.Output 
             }
             
             if let error = HttpError.error(withCode: statusCode, data: $0.data) {
-                Swift.print("Http Client: Error - \(error)")
+                Swift.print("Http Client: Error - \(error), status code: \(statusCode)")
                 throw error
             }
             
@@ -154,7 +157,7 @@ private extension Publisher where Output == URLSession.DataTaskPublisher.Output 
             }
             
             if let error = HttpError.error(withCode: statusCode, data: $0.data) {
-                Swift.print("Http Client: Error - \(error)")
+                Swift.print("Http Client: Error - \(error), status code: \(statusCode)")
                 throw error
             }
             
