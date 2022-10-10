@@ -46,50 +46,71 @@ public extension HttpClient {
             .holdResponse(toBeAtLeast: 0.5)
     }
     
-    func call<T: Decodable>(endpoint: HttpEndpoint, body: [String: AnyObject]? = nil) -> AnyPublisher<T, HttpError> {
+    func call<T: Decodable>(endpoint: HttpEndpoint, body: [String: AnyObject]? = nil, authType: AuthorizationType = .access) -> AnyPublisher<T, HttpError> {
         endpoint.printRequest(url: baseURL, body: body)
         
-        let start = CFAbsoluteTimeGetCurrent()
-        
-        return tokenProvider
-            .fetchToken()
-            .tryMap { token in
-                try endpoint.urlRequest(baseURL: baseURL,
-                                        body: body,
-                                        authorizationHeader: .bearer(token: token.value))
-            }
-            .flatMap { request in
-                self.session
-                    .dataTaskPublisher(for: request)
-                    .retry(3)
-                    .processResponse(url: request.url)
-            }
-            .handleEvents(receiveCompletion: { _ in
-                let diff = CFAbsoluteTimeGetCurrent() - start
-                print("\(diff) sec")
-            })
-            .mapError {
-                handleImportantErrors($0)
-                return $0.httpError
-            }
-            .holdResponse(toBeAtLeast: 0.5)
+        return createRequest(endpoint: endpoint, body: body, authType: authType)
+            .flatMap(performRequest)
+            .eraseToAnyPublisher()
+    }
+}
+
+private extension HttpClient {
+    func createRequest(endpoint: HttpEndpoint, body: [String: AnyObject]? = nil, authType: AuthorizationType = .access) -> AnyPublisher<URLRequest, HttpError> {
+        switch authType {
+        case .no:
+            return createGeneralRequest(endpoint: endpoint, body: body)
+        case .basic(let token):
+            return createBasicRequest(endpoint: endpoint, body: body, token: token)
+        case .client:
+            return createClientRequest(endpoint: endpoint, body: body)
+        case .access:
+            return createAccessRequest(endpoint: endpoint, body: body)
+        }
     }
     
-    func unauthorizedCall<T: Decodable>(endpoint: HttpEndpoint,
-                                        body: [String: AnyObject]? = nil,
-                                        authorizationToken: String? = nil) -> AnyPublisher<T, HttpError> {
-        endpoint.printRequest(url: baseURL, body: body)
-        
-        let start = CFAbsoluteTimeGetCurrent()
-        let authHeader: AuthorizationHeader? = authorizationToken != nil ? .basic(token: authorizationToken!) : nil
-        
+    func createGeneralRequest(endpoint: HttpEndpoint, body: [String: AnyObject]? = nil) -> AnyPublisher<URLRequest, HttpError> {
+        guard let request = try? endpoint.urlRequest(baseURL: baseURL, body: body) else {
+            return Fail(error: HttpError.invalidRequest).eraseToAnyPublisher()
+        }
+        return Just(request)
+            .setFailureType(to: HttpError.self)
+            .eraseToAnyPublisher()
+    }
+    
+    func createBasicRequest(endpoint: HttpEndpoint, body: [String: AnyObject]? = nil, token: String) -> AnyPublisher<URLRequest, HttpError> {
         guard let request = try? endpoint.urlRequest(baseURL: baseURL,
                                                      body: body,
-                                                     authorizationHeader: authHeader) else {
-            return Future<T, HttpError> { promise in
-                promise(.failure(.invalidRequest))
-            }.eraseToAnyPublisher()
+                                                     authorizationHeader: .basic(token: token)) else {
+            return Fail(error: HttpError.invalidRequest).eraseToAnyPublisher()
         }
+        return Just(request)
+            .setFailureType(to: HttpError.self)
+            .eraseToAnyPublisher()
+    }
+    
+    func createClientRequest(endpoint: HttpEndpoint, body: [String: AnyObject]? = nil) -> AnyPublisher<URLRequest, HttpError> {
+        tokenProvider
+            .fetchClientToken()
+            .tryMap { token in
+                try endpoint.urlRequest(baseURL: baseURL, body: body, authorizationHeader: .bearer(token: token.value))
+            }
+            .mapError { _ in HttpError.invalidRequest }
+            .eraseToAnyPublisher()
+    }
+    
+    func createAccessRequest(endpoint: HttpEndpoint, body: [String: AnyObject]? = nil) -> AnyPublisher<URLRequest, HttpError> {
+        tokenProvider
+            .fetchToken()
+            .tryMap { token in
+                try endpoint.urlRequest(baseURL: baseURL, body: body, authorizationHeader: .bearer(token: token.value))
+            }
+            .mapError { _ in HttpError.invalidRequest }
+            .eraseToAnyPublisher()
+    }
+    
+    func performRequest<T: Decodable>(request: URLRequest) -> AnyPublisher<T, HttpError> {
+        let start = CFAbsoluteTimeGetCurrent()
         
         return session
             .dataTaskPublisher(for: request)
@@ -105,9 +126,7 @@ public extension HttpClient {
             }
             .holdResponse(toBeAtLeast: 0.5)
     }
-}
-
-private extension HttpClient {
+    
     func handleImportantErrors(_ error: Error) {
         switch error {
         case HttpError.unauthorized:

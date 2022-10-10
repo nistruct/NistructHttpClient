@@ -33,3 +33,10 @@ public enum AuthorizationHeader {
         }
     }
 }
+
+public enum AuthorizationType {
+    case no
+    case basic(token: String)
+    case client
+    case access
+}
