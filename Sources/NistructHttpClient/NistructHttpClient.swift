@@ -25,6 +25,10 @@ public struct NistructHttpClient {
                            authenticator: authenticator,
                            tokenProvider: tokenProvider)
     }
+    
+    public static func startLogging() {
+        Log.start()
+    }
 }
 
 extension NistructHttpClient: HttpClient {

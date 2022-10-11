@@ -37,7 +37,7 @@ public extension HttpClient {
             }
             .handleEvents(receiveCompletion: { _ in
                 let diff = CFAbsoluteTimeGetCurrent() - start
-                print("\(diff) sec")
+                log.verbose("\(diff) sec")
             })
             .mapError {
                 handleImportantErrors($0)
@@ -46,7 +46,9 @@ public extension HttpClient {
             .holdResponse(toBeAtLeast: 0.5)
     }
     
-    func call<T: Decodable>(endpoint: HttpEndpoint, body: [String: AnyObject]? = nil, authType: AuthorizationType = .access) -> AnyPublisher<T, HttpError> {
+    func call<T: Decodable>(endpoint: HttpEndpoint,
+                            body: [String: AnyObject]? = nil,
+                            authType: AuthorizationType = .access) -> AnyPublisher<T, HttpError> {
         endpoint.printRequest(url: baseURL, body: body)
         
         return createRequest(endpoint: endpoint, body: body, authType: authType)
@@ -56,7 +58,9 @@ public extension HttpClient {
 }
 
 private extension HttpClient {
-    func createRequest(endpoint: HttpEndpoint, body: [String: AnyObject]? = nil, authType: AuthorizationType = .access) -> AnyPublisher<URLRequest, HttpError> {
+    func createRequest(endpoint: HttpEndpoint,
+                       body: [String: AnyObject]? = nil,
+                       authType: AuthorizationType = .access) -> AnyPublisher<URLRequest, HttpError> {
         switch authType {
         case .no:
             return createGeneralRequest(endpoint: endpoint, body: body)
@@ -69,7 +73,8 @@ private extension HttpClient {
         }
     }
     
-    func createGeneralRequest(endpoint: HttpEndpoint, body: [String: AnyObject]? = nil) -> AnyPublisher<URLRequest, HttpError> {
+    func createGeneralRequest(endpoint: HttpEndpoint,
+                              body: [String: AnyObject]? = nil) -> AnyPublisher<URLRequest, HttpError> {
         guard let request = try? endpoint.urlRequest(baseURL: baseURL, body: body) else {
             return Fail(error: HttpError.invalidRequest).eraseToAnyPublisher()
         }
@@ -78,7 +83,9 @@ private extension HttpClient {
             .eraseToAnyPublisher()
     }
     
-    func createBasicRequest(endpoint: HttpEndpoint, body: [String: AnyObject]? = nil, token: String) -> AnyPublisher<URLRequest, HttpError> {
+    func createBasicRequest(endpoint: HttpEndpoint,
+                            body: [String: AnyObject]? = nil,
+                            token: String) -> AnyPublisher<URLRequest, HttpError> {
         guard let request = try? endpoint.urlRequest(baseURL: baseURL,
                                                      body: body,
                                                      authorizationHeader: .basic(token: token)) else {
@@ -89,7 +96,8 @@ private extension HttpClient {
             .eraseToAnyPublisher()
     }
     
-    func createClientRequest(endpoint: HttpEndpoint, body: [String: AnyObject]? = nil) -> AnyPublisher<URLRequest, HttpError> {
+    func createClientRequest(endpoint: HttpEndpoint,
+                             body: [String: AnyObject]? = nil) -> AnyPublisher<URLRequest, HttpError> {
         tokenProvider
             .fetchClientToken()
             .tryMap { token in
@@ -99,7 +107,8 @@ private extension HttpClient {
             .eraseToAnyPublisher()
     }
     
-    func createAccessRequest(endpoint: HttpEndpoint, body: [String: AnyObject]? = nil) -> AnyPublisher<URLRequest, HttpError> {
+    func createAccessRequest(endpoint: HttpEndpoint,
+                             body: [String: AnyObject]? = nil) -> AnyPublisher<URLRequest, HttpError> {
         tokenProvider
             .fetchToken()
             .tryMap { token in
@@ -118,7 +127,7 @@ private extension HttpClient {
             .processResponse(url: request.url)
             .handleEvents(receiveCompletion: { _ in
                 let diff = CFAbsoluteTimeGetCurrent() - start
-                print("\(diff) sec")
+                log.verbose("\(diff) sec")
             })
             .mapError {
                 handleImportantErrors($0)
@@ -130,11 +139,11 @@ private extension HttpClient {
     func handleImportantErrors(_ error: Error) {
         switch error {
         case HttpError.unauthorized:
-            print("**** UNAUTHORIZED -> SIGN OUT")
+            log.warning("**** UNAUTHORIZED -> SIGN OUT")
             _ = self.authenticator.signOut()
             break
         case HttpError.upgradeRequired:
-            print("**** UPDATE NEEDED")
+            log.warning("**** UPDATE NEEDED")
             NotificationCenter.default.post(name: .UpdateNeeded, object: nil)
             break
         default:
@@ -151,7 +160,7 @@ private extension Publisher where Output == URLSession.DataTaskPublisher.Output 
             }
             
             if let error = HttpError.error(withCode: statusCode, data: $0.data) {
-                Swift.print("Http Client: Error - \(error), status code: \(statusCode)")
+                log.error("Http Client: Error - \(error), status code: \(statusCode)")
                 throw error
             }
             
@@ -173,7 +182,7 @@ private extension Publisher where Output == URLSession.DataTaskPublisher.Output 
             }
             
             if let error = HttpError.error(withCode: statusCode, data: $0.data) {
-                Swift.print("Http Client: Error - \(error), status code: \(statusCode)")
+                log.error("Http Client: Error - \(error), status code: \(statusCode)")
                 throw error
             }
             
@@ -204,10 +213,15 @@ extension Publisher where Output == Data {
             guard let json = data.toJson() else {
                 return
             }
-            Swift.print("\n----API RESPONSE----")
-            Swift.print(url?.absoluteString ?? "")
-            Swift.print(json)
-            Swift.print("----API RESPONSE----\n")
+            
+            let info = """
+                    \n----API RESPONSE----
+                    Url: \(url?.absoluteString ?? "")
+                    Response:
+                    \(json)
+                    ----API RESPONSE----\n
+                    """
+            log.verbose(info)
         })
         .eraseToAnyPublisher()
     }

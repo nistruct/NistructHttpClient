@@ -43,16 +43,21 @@ public extension HttpEndpoint {
     }
     
     func printRequest(url: String, body: [String: AnyObject]? = nil) {
-        print("\n****REQUEST****")
-        print("Path: \(url)\(path)")
-        print("Method: \(method)")
-        
+        var bodyInfo = ""
         if let body = body, !body.isEmpty {
-            print("Body:")
             body.forEach {
-                print("\($0.key): \($0.value)")
+                bodyInfo.append("\($0.key): \($0.value)\n")
             }
         }
+        
+        let info = """
+                \n****REQUEST****
+                \(method) \(url)\(path)"
+                Body:
+                \(bodyInfo)
+                """
+        
+        log.debug(info)
     }
 }
 

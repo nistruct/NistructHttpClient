@@ -12,8 +12,10 @@ struct ArrayResponse<T>: Decodable where T: Decodable {
 }
 
 extension HttpClient {
-    func fetchArray<T>(endpoint: HttpEndpoint) -> AnyPublisher<ArrayResponse<[T]>, HttpError> {
-        call(endpoint: endpoint)
+    func fetchArray<T>(endpoint: HttpEndpoint,
+                       body: [String: AnyObject]? = nil,
+                       authType: AuthorizationType = .access) -> AnyPublisher<ArrayResponse<[T]>, HttpError> {
+        call(endpoint: endpoint, body: body, authType: authType)
             .eraseToAnyPublisher()
     }
 }

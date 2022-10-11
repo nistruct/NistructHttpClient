@@ -1,0 +1,25 @@
+{
+  "object": {
+    "pins": [
+      {
+        "package": "NistructLog",
+        "repositoryURL": "https://github.com/nistruct/NistructLog.git",
+        "state": {
+          "branch": null,
+          "revision": "f8fb80a0f4ef0184c921b16c0f8741b87075c31e",
+          "version": "0.0.1"
+        }
+      },
+      {
+        "package": "SwiftyBeaver",
+        "repositoryURL": "https://github.com/SwiftyBeaver/SwiftyBeaver.git",
+        "state": {
+          "branch": null,
+          "revision": "12b5acf96d98f91d50de447369bd18df74600f1a",
+          "version": "1.9.6"
+        }
+      }
+    ]
+  },
+  "version": 1
+}

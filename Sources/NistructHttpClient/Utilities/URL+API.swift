@@ -22,7 +22,7 @@ extension URL {
         components.queryItems = params.map { return URLQueryItem(name: $0.0, value: $0.1) }
         
         if let url = components.url {
-            print(url.absoluteString)
+            log.debug(url.absoluteString)
             return url
         }
         

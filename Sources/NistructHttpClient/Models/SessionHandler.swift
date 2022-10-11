@@ -88,15 +88,15 @@ extension SessionHandler: URLSessionDelegate {
             guard let pathToCert = Bundle.main.path(forResource: certificateName, ofType: Keys.CertTypeCer),
                   let localCertificate = NSData(contentsOfFile: pathToCert) else { continue }
             
-            print("SSL Certificate: \(String(describing: pathToCert))")
+            log.debug("SSL Certificate: \(String(describing: pathToCert))")
             if isServerTrusted && remoteCertificateData.isEqual(to: localCertificate as Data) {
                 let credential: URLCredential = URLCredential(trust: serverTrust!)
-                print("SSL Pinning OK")
+                log.debug("SSL Pinning OK")
                 completionHandler(.useCredential, credential)
                 return
             }
             
-            print("SSL Pinning Not OK")
+            log.error("SSL Pinning Not OK")
         }
         
         NotificationCenter.default.post(name: .InvalidCertificate, object: nil)
