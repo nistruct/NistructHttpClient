@@ -1,8 +1,8 @@
 //
 //  Log.swift
 //  
-//
 //  Created by Nikola Nikolic on 11.10.22..
+//  Copyright © 2020 Nistruct. All rights reserved.
 //
 
 import NistructLog

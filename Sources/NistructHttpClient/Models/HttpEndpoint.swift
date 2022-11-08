@@ -12,10 +12,12 @@ public protocol HttpEndpoint {
     var method: HttpMethod { get }
     var headers: [String: String]? { get }
     var contentType: ContentType { get }
+    var kind: RequestKind { get }
 }
 
 public extension HttpEndpoint {
     var contentType: ContentType { .json }
+    var kind: RequestKind { .api }
 }
 
 public extension HttpEndpoint {

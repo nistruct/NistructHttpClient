@@ -6,9 +6,11 @@
             // This is an example of a functional test case.
             // Use XCTAssert and related functions to verify your tests produce the correct
             // results.
-            let client = NistructHttpClient(baseUrl: String.TestBaseUrl,
+            let client = NistructHttpClient(authUrl: String.TestAuthUrl,
+                                            apiUrl: String.TestApiUrl,
                                             authenticator: FakeAuthenticator(),
                                             tokenProvider: FakeTokenProvider())
-            XCTAssertEqual(client.baseURL, String.TestBaseUrl)
+            XCTAssertEqual(client.authURL, String.TestAuthUrl)
+            XCTAssertEqual(client.apiURL, String.TestApiUrl)
         }
     }

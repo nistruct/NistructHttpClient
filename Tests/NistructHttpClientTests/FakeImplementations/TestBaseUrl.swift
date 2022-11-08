@@ -8,5 +8,6 @@
 import Foundation
 
 extension String {
-    static let TestBaseUrl  = "https://test.nistruct.http.client"
+    static let TestAuthUrl  = "https://test.nistruct.http.client"
+    static let TestApiUrl  = "https://test.nistruct.http.client"
 }
