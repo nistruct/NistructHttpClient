@@ -17,7 +17,7 @@ let package = Package(
     ],
     dependencies: [
         // Dependencies declare other packages that this package depends on.
-        .package(name: "NistructLog", url: "https://github.com/nistruct/NistructLog.git", .upToNextMinor(from: "0.0.1")),
+        .package(name: "NistructLog", url: "https://github.com/nistruct/NistructLog.git", .upToNextMinor(from: "0.0.2")),
     ],
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
