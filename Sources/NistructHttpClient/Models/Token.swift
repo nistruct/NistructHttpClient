@@ -7,16 +7,14 @@
 
 import Foundation
 
-public struct Token {
-    public let value: String
-    public let expiration: Date
-    
-    public var isValid: Bool {
+public protocol Token: Codable {
+    var value: String { get }
+    var expiration: Date { get }    
+    var isValid: Bool { get }
+}
+
+public extension Token {
+    var isValid: Bool  {
         expiration > Date()
-    }
-    
-    public init(value: String, expiration: Date) {
-        self.value = value
-        self.expiration = expiration
     }
 }
