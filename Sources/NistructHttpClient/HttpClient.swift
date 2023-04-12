@@ -149,7 +149,7 @@ private extension HttpClient {
         switch error {
         case HttpError.unauthorized:
             log.warning("**** UNAUTHORIZED -> SIGN OUT")
-            _ = self.authenticator.signOut()
+            _ = self.authenticator.didSignOut()
             break
         case HttpError.upgradeRequired:
             log.warning("**** UPDATE NEEDED")
