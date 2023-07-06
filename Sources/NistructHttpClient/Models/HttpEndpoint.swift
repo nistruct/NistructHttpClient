@@ -136,6 +136,8 @@ private extension HttpEndpoint {
                 .map { "\($0.key)=\($0.value)" }
                 .joined(separator: "&")
                 .data(using: .utf8)
+        case .multipart:
+            return nil
         }
     }
 }
