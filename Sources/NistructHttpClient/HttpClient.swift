@@ -134,9 +134,9 @@ private extension HttpClient {
             .fetchToken()
             .tryMap { token in
                 if multipart {
-                    return try endpoint.urlRequest(baseURL: url, body: body, authorizationHeader: .bearer(token: token.value))
-                } else {
                     return try endpoint.multipartRequest(baseURL: url, authorizationHeader: .bearer(token: token.value))
+                } else {
+                    return try endpoint.urlRequest(baseURL: url, body: body, authorizationHeader: .bearer(token: token.value))
                 }
             }
             .mapError { _ in HttpError.invalidRequest }
