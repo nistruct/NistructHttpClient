@@ -51,32 +51,11 @@ public extension HttpClient {
     
     func upload<T: Decodable>(endpoint: HttpEndpoint) -> AnyPublisher<T, HttpError> {
         let url = endpoint.kind == .auth ? authURL : apiURL
-        
         endpoint.printRequest(url: url)
         
-        let start = CFAbsoluteTimeGetCurrent()
-        
-        return tokenProvider
-            .fetchToken()
-            .tryMap { token in
-                try endpoint.multipartRequest(baseURL: url,
-                                              authorizationHeader: .bearer(token: token.value))
-            }
-            .flatMap { request in
-                return self.session
-                    .dataTaskPublisher(for: request)
-                    .retry(3)
-                    .processApiResponse()
-            }
-            .handleEvents(receiveCompletion: { _ in
-                let diff = CFAbsoluteTimeGetCurrent() - start
-                log.verbose("\(diff) sec")
-            })
-            .mapError {
-                handleImportantErrors($0)
-                return $0.httpError
-            }
-            .holdResponse(toBeAtLeast: 0.5)
+        return createRequest(url: url, endpoint: endpoint, authType: authType, multipart: true)
+            .flatMap(performRequest)
+            .eraseToAnyPublisher()
     }
     
     func call<T: Decodable>(endpoint: HttpEndpoint,
@@ -95,7 +74,8 @@ private extension HttpClient {
     func createRequest(url: String,
                        endpoint: HttpEndpoint,
                        body: [String: AnyObject]? = nil,
-                       authType: AuthorizationType = .access) -> AnyPublisher<URLRequest, HttpError> {
+                       authType: AuthorizationType = .access,
+                       multipart: Bool = false) -> AnyPublisher<URLRequest, HttpError> {
         switch authType {
         case .no:
             return createGeneralRequest(url: url, endpoint: endpoint, body: body)
@@ -104,7 +84,7 @@ private extension HttpClient {
         case .client:
             return createClientRequest(url: url, endpoint: endpoint, body: body)
         case .access:
-            return createAccessRequest(url: url, endpoint: endpoint, body: body)
+            return createAccessRequest(url: url, endpoint: endpoint, body: body, multipart: multipart)
         }
     }
     
@@ -147,11 +127,16 @@ private extension HttpClient {
     
     func createAccessRequest(url: String,
                              endpoint: HttpEndpoint,
-                             body: [String: AnyObject]? = nil) -> AnyPublisher<URLRequest, HttpError> {
+                             body: [String: AnyObject]? = nil,
+                             multipart: Bool = false) -> AnyPublisher<URLRequest, HttpError> {
         tokenProvider
             .fetchToken()
             .tryMap { token in
-                try endpoint.urlRequest(baseURL: url, body: body, authorizationHeader: .bearer(token: token.value))
+                if multipart {
+                    return try endpoint.urlRequest(baseURL: url, body: body, authorizationHeader: .bearer(token: token.value))
+                } else {
+                    return try endpoint.multipartRequest(baseURL: url, authorizationHeader: .bearer(token: token.value))
+                }
             }
             .mapError { _ in HttpError.invalidRequest }
             .eraseToAnyPublisher()
