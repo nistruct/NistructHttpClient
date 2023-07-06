@@ -49,6 +49,36 @@ public extension HttpClient {
             .holdResponse(toBeAtLeast: 0.5)
     }
     
+    func upload<T: Decodable>(endpoint: HttpEndpoint) -> AnyPublisher<T, HttpError> {
+        let url = endpoint.kind == .auth ? authURL : apiURL
+        
+        endpoint.printRequest(url: url)
+        
+        let start = CFAbsoluteTimeGetCurrent()
+        
+        return tokenProvider
+            .fetchToken()
+            .tryMap { token in
+                try endpoint.multipartRequest(baseURL: url,
+                                              authorizationHeader: .bearer(token: token.value))
+            }
+            .flatMap { request in
+                return self.session
+                    .dataTaskPublisher(for: request)
+                    .retry(3)
+                    .processApiResponse()
+            }
+            .handleEvents(receiveCompletion: { _ in
+                let diff = CFAbsoluteTimeGetCurrent() - start
+                log.verbose("\(diff) sec")
+            })
+            .mapError {
+                handleImportantErrors($0)
+                return $0.httpError
+            }
+            .holdResponse(toBeAtLeast: 0.5)
+    }
+    
     func call<T: Decodable>(endpoint: HttpEndpoint,
                             body: [String: AnyObject]? = nil,
                             authType: AuthorizationType = .access) -> AnyPublisher<T, HttpError> {

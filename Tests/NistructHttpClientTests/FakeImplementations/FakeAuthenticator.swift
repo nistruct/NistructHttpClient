@@ -21,4 +21,8 @@ class FakeAuthenticator: Authenticatable {
             }
         }.eraseToAnyPublisher()
     }
+    
+    func didSignOut() {
+        
+    }
 }

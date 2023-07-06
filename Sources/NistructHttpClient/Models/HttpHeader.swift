@@ -8,13 +8,14 @@
 import Foundation
 
 public struct HttpHeader {
-    public static let ContentType   = "Content-Type"
-    public static let ContentLength = "Content-Length"
-    public static let Accept        = "Accept"
-    public static let Authorization = "Authorization"
-    public static let Bearer        = AuthType.bearer.rawValue
-    public static let Basic         = AuthType.basic.rawValue
-    public static let UserAgent     = "User-Agent"
+    public static let ContentType           = "Content-Type"
+    public static let ContentLength         = "Content-Length"
+    public static let ContentDisposition    = "Content-Disposition"
+    public static let Accept                = "Accept"
+    public static let Authorization         = "Authorization"
+    public static let Bearer                = AuthType.bearer.rawValue
+    public static let Basic                 = AuthType.basic.rawValue
+    public static let UserAgent             = "User-Agent"
     
     public enum AuthType: String {
         case bearer = "Bearer"
