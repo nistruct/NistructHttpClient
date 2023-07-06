@@ -49,7 +49,8 @@ public extension HttpClient {
             .holdResponse(toBeAtLeast: 0.5)
     }
     
-    func upload<T: Decodable>(endpoint: HttpEndpoint) -> AnyPublisher<T, HttpError> {
+    func upload<T: Decodable>(endpoint: HttpEndpoint,
+                              authType: AuthorizationType = .access) -> AnyPublisher<T, HttpError> {
         let url = endpoint.kind == .auth ? authURL : apiURL
         endpoint.printRequest(url: url)
         
