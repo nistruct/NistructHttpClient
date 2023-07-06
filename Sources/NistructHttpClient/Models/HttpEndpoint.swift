@@ -19,6 +19,7 @@ public protocol HttpEndpoint {
 public extension HttpEndpoint {
     var contentType: ContentType { .json }
     var kind: RequestKind { .api }
+    var components: [MultipartComponent]? { nil }
 }
 
 public extension HttpEndpoint {
