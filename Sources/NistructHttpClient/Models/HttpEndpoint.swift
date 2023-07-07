@@ -78,9 +78,8 @@ public extension HttpEndpoint {
         request.setValue(multipart.httpContentTypeHeadeValue, forHTTPHeaderField: HttpHeader.ContentType)
         request.httpBody = multipart.httpBody
         
-        var headerFields = headers ?? [String: String]()
+        var headerFields = [String: String]()
         headerFields[HttpHeader.UserAgent] =  userAgentValue()
-        headerFields[HttpHeader.ContentType] = contentType.rawValue
         
         if let authorizationHeader {
             headerFields[HttpHeader.Authorization] = authorizationHeader.value
