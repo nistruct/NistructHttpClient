@@ -7,17 +7,42 @@
 
 import Foundation
 
+/**
+ Http Error
+ */
 public enum HttpError: Error {
+    
+    /// Incalid URL error.
     case invalidURL
+    
+    //// Unauthorized error.
     case unauthorized
+    
+    /// Invalid request error.
     case invalidRequest
+    
+    /// Unexpected response error.
     case unexpectedResponse
+    
+    /// Precondition required error.
     case preconditionRequired(message: String?)
+    
+    /// Not found error.
     case notFound(message: String?)
+    
+    /// Already done error.
     case alreadyDone(message: String?)
-    case serverError(code: Int, message: String?)
+    
+    /// Server error.
+    case serverError(code: Int, errorCode: String?, message: String?)
+    
+    /// Parser error.
     case parserError(message: String?)
+    
+    /// General error.
     case generalError(message: String?)
+    
+    /// Upgrate required error.
     case upgradeRequired
 }
 
@@ -34,6 +59,13 @@ public extension HTTPCodes {
 }
 
 extension HttpError {
+    
+    /**
+     Gets an error of type `HttpError` from the status code and response from backend.
+     - parameter code: Status code.
+     - parameter data: Binary data response.
+     - returns Error of type `HttpError`.
+     */
     static func error(withCode code: Int, data: Data) -> HttpError? {
         if code == HTTPCodes.unauthorized {
             return HttpError.unauthorized
@@ -56,9 +88,11 @@ extension HttpError {
 }
 
 extension HttpError {
+    
+    /// Status code.
     var code: Int {
         switch self {
-        case .serverError(let code, _): return code
+        case .serverError(let code, _, _): return code
         case .preconditionRequired: return HTTPCodes.preconditionRequired
         case .alreadyDone: return HTTPCodes.alreadyDone
         case .notFound: return HTTPCodes.notFound
@@ -67,6 +101,15 @@ extension HttpError {
         }
     }
     
+    /// Error code.
+    var errorCode: String? {
+        switch self {
+        case .serverError(_, let code, _): return code
+        default: return nil
+        }
+    }
+    
+    /// Indicator whether an error type is `isPreconditionFulfilled`.
     var isPreconditionFulfilled: Bool {
         switch self {
         case .preconditionRequired: return false
@@ -76,9 +119,11 @@ extension HttpError {
 }
 
 extension HttpError: LocalizedError {
+    
+    /// Error desctiption.
     public var errorDescription: String? {
         switch self {
-        case .serverError(_, let message): return message
+        case .serverError(_, _, let message): return message
         case .preconditionRequired(let message): return message
         case .unauthorized: return "User is Unauthorized"
         case .notFound(let message): return message
@@ -91,6 +136,8 @@ extension HttpError: LocalizedError {
 }
 
 extension ApiResponse {
+    
+    /// Error of type `HttpError`
     var error: HttpError {
         if statusCode == HTTPCodes.preconditionRequired {
             return .preconditionRequired(message: errorInfo?.message)
@@ -99,7 +146,7 @@ extension ApiResponse {
         } else if statusCode == HTTPCodes.notFound {
             return .notFound(message: errorInfo?.message)
         }
-        return .serverError(code: statusCode ?? 200, message: errorInfo?.message ?? message)
+        return .serverError(code: statusCode ?? 200, errorCode: errorInfo?.code, message: errorInfo?.message ?? message)
     }
 }
 
