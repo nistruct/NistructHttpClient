@@ -7,8 +7,36 @@
 
 import Foundation
 
-public enum ContentType: String {
-    case json           = "application/json"
-    case urlEncoded     = "application/x-www-form-urlencoded"
-    case multipart      = "multipart/form-data"
+/**
+ Content type.
+ */
+public enum ContentType: Equatable {
+    
+    /// Json.
+    case json
+    
+    /// URL encoded.
+    case urlEncoded
+    
+    /// Multipart form data.
+    case multipart
+    
+    /// Custom type.
+    case custom(value: String)
+    
+    /**
+     Raw value of the content type.
+     */
+    public var rawValue: String {
+        switch self {
+        case .json:
+            "application/json"
+        case .urlEncoded:
+            "application/x-www-form-urlencoded"
+        case .multipart:
+            "multipart/form-data"
+        case .custom(let value):
+            value
+        }
+    }
 }
