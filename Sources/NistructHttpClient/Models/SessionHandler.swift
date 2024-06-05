@@ -7,17 +7,25 @@
 
 import Foundation
 
+/**
+ Session handler.
+ */
 public class SessionHandler: NSObject {
+    
+    /// Default session.
     public static let defaultSession: URLSession = {
         return SessionHandler(sslPinning: false).session
     }()
     
+    /// SSL Pinning session.
     public static let sslPinningSession: URLSession = {
         return SessionHandler(sslPinning: true).session
     }()
     
+    /// Session.
     private var session: URLSession!
     
+    /// An array of certificate names when using SSL pinning.
     private static var certificateNameList: [String] {
         get {
             guard let secret = Bundle.main.infoDictionary?[Keys.CertName] as? String else {
@@ -30,7 +38,7 @@ public class SessionHandler: NSObject {
     public init(sslPinning: Bool) {
         super.init()
         
-        let sessionConfiguration = SessionHandler.sessionConfiguration()
+        let sessionConfiguration = SessionHandler.sessionConfiguration
         
         var session: URLSession!
         if sslPinning {
@@ -44,7 +52,8 @@ public class SessionHandler: NSObject {
         self.session = session
     }
     
-    private static func sessionConfiguration() -> URLSessionConfiguration {
+    /// Session configuration.
+    private static var sessionConfiguration: URLSessionConfiguration {
         let sessionConfiguration = URLSessionConfiguration.default
         sessionConfiguration.timeoutIntervalForRequest = 10
 //        sessionConfiguration.timeoutIntervalForResource = 120
@@ -55,7 +64,15 @@ public class SessionHandler: NSObject {
     }
 }
 
+// MARK: - Helper methods.
 extension SessionHandler: URLSessionDelegate {
+    
+    /**
+     Setups URL session for SSL pinning.
+     - parameters session: URL session.
+     - parameter challenge: URL Authentication challenge.
+     - parameter completionHandler: Block of code to be executed when done.
+     */
     public func urlSession(_ session: URLSession,
                            didReceive challenge: URLAuthenticationChallenge,
                            completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
@@ -104,9 +121,18 @@ extension SessionHandler: URLSessionDelegate {
     }
 }
 
+// MARK: - Helper structs.
 extension SessionHandler {
+    
+    /**
+     Keys.
+     */
     struct Keys {
+        
+        /// Certificate name key.
         static let CertName     = "CERT_NAME"
+        
+        /// Certificate type `cer` key.
         static let CertTypeCer  = "cer"
     }
 }

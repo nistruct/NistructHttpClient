@@ -8,7 +8,7 @@
 import Foundation
 
 /**
- Http Error
+ HTTP Error.
  */
 public enum HttpError: Error {
     
@@ -49,6 +49,9 @@ public enum HttpError: Error {
 typealias HTTPCode = Int
 typealias HTTPCodes = Range<HTTPCode>
 
+/**
+ Http codes.
+ */
 public extension HTTPCodes {
     static let success              = 200 ..< 300
     static let unauthorized         = 401
@@ -58,6 +61,7 @@ public extension HTTPCodes {
     static let upgradeRequired      = 426
 }
 
+// MARK: - Helper methods.
 extension HttpError {
     
     /**
@@ -87,6 +91,7 @@ extension HttpError {
     }
 }
 
+// MARK: - Helper properties.
 extension HttpError {
     
     /// Status code.
@@ -118,6 +123,7 @@ extension HttpError {
     }
 }
 
+// MARK: - Implementation of the `LocalizedError` protocol.
 extension HttpError: LocalizedError {
     
     /// Error desctiption.
@@ -135,6 +141,7 @@ extension HttpError: LocalizedError {
     }
 }
 
+// MARK: - Helper `ApiResponse` properties.
 extension ApiResponse {
     
     /// Error of type `HttpError`
@@ -150,6 +157,7 @@ extension ApiResponse {
     }
 }
 
+// MARK: - Private `Data` helper methods.
 private extension Data {
     func asApiError(code: Int) -> HttpError? {
         guard var response = try? JSONDecoder().decode(ApiResponse<EmptyResponse>.self, from: self) else {

@@ -8,16 +8,13 @@
 import Foundation
 
 /**
- Request Kind
+ Request Kind.
  */
 public enum RequestKind {
-    /**
-     Auth kind that use auth url
-     */
+    
+    /// Auth kind that use auth url.
     case auth
     
-    /**
-     API kind that use api url.
-     */
+    /// API kind that use api url.
     case api
 }

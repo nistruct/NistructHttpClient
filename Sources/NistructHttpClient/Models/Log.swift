@@ -9,7 +9,14 @@ import NistructLog
 
 typealias log = NistructLog
 
+/**
+ Log.
+ */
 class Log {
+    
+    /**
+     Starts the logging.
+     */
     static func start() {
         log.configure()
         log.setLogLevel(.verbose)

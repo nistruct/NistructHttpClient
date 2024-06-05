@@ -7,4 +7,7 @@
 
 import Foundation
 
+/**
+ Empty response used for the requests with no response body.
+ */
 public struct EmptyResponse: Decodable {}

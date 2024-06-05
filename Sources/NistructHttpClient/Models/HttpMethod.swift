@@ -7,10 +7,23 @@
 
 import Foundation
 
+/**
+ Http Method.
+ */
 public enum HttpMethod: String {
+    
+    /// GET method.
     case get    = "GET"
+    
+    /// POST method.
     case post   = "POST"
+    
+    /// DELETE Method.
     case delete = "DELETE"
+    
+    /// PUT method.
     case put    = "PUT"
+    
+    /// PATCH method.
     case patch  = "PATCH"
 }
