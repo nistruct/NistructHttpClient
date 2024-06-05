@@ -7,25 +7,56 @@
 
 import Foundation
 
+/**
+ HTTP Endpoint description protocol.
+ */
 public protocol HttpEndpoint {
+    
+    /// Relative path.
     var path: String { get }
+    
+    /// Http Method.
     var method: HttpMethod { get }
+    
+    /// Headers info.
     var headers: [String: String]? { get }
+    
+    /// Content type.
     var contentType: ContentType { get }
+    
+    /// Request kind.
     var kind: RequestKind { get }
+    
+    /// Mutlipart components.
     var components: [MultipartComponent]? { get }
 }
 
+// MARK: - Default implementation of the `HttpEndpoint` protocol.
 public extension HttpEndpoint {
     var contentType: ContentType { .json }
     var kind: RequestKind { .api }
     var components: [MultipartComponent]? { nil }
 }
 
+// MARK: - Helper methods.
 public extension HttpEndpoint {
+    
+    /**
+     Creates an URL request.
+     - parameters baseURL: Base URL.
+     - parameters body: Optional body.
+     - parameters authorizationHeader: Optional authorization header.
+     - throws Error of kind`HttpError`.
+     - returns Instance of the `URLRequest`.
+     */
     func urlRequest(baseURL: String,
                     body: [String: AnyObject]? = nil,
                     authorizationHeader: AuthorizationHeader? = nil) throws -> URLRequest {
+        
+        if contentType == .multipart {
+            return try multipartRequest(baseURL: baseURL, body: body ?? [:], authorizationHeader: authorizationHeader)
+        }
+        
         guard let url = URL(string: baseURL + path) else {
             throw HttpError.invalidURL
         }
@@ -34,7 +65,7 @@ public extension HttpEndpoint {
         request.httpMethod = method.rawValue
         
         var headerFields = headers ?? [String: String]()
-        headerFields[HttpHeader.UserAgent] =  userAgentValue()
+        headerFields[HttpHeader.UserAgent] =  userAgentValue
         headerFields[HttpHeader.ContentType] = contentType.rawValue
         
         if let authorizationHeader {
@@ -46,6 +77,14 @@ public extension HttpEndpoint {
         return request
     }
     
+    /**
+     Creates a Multipart request.
+     - parameters baseURL: Base URL.
+     - parameters body: Optional body.
+     - parameters authorizationHeader: Optional authorization header.
+     - throws Error of kind`HttpError` if the url is invalid.
+     - returns Instance of the `URLRequest`.
+     */
     func multipartRequest(baseURL: String,
                           body: [String: AnyObject] = [:],
                           authorizationHeader: AuthorizationHeader? = nil) throws -> URLRequest {
@@ -72,14 +111,14 @@ public extension HttpEndpoint {
             }
         }
 
-        /// Create a regular HTTP URL request & use multipart components
+        /// Creates a regular HTTP URL request & uses multipart components.
         var request = URLRequest(url: url)
         request.httpMethod = method.rawValue
         request.setValue(multipart.httpContentTypeHeadeValue, forHTTPHeaderField: HttpHeader.ContentType)
         request.httpBody = multipart.httpBody
         
         var headerFields = [String: String]()
-        headerFields[HttpHeader.UserAgent] =  userAgentValue()
+        headerFields[HttpHeader.UserAgent] =  userAgentValue
         
         if let authorizationHeader {
             headerFields[HttpHeader.Authorization] = authorizationHeader.value
@@ -90,6 +129,11 @@ public extension HttpEndpoint {
         return request
     }
     
+    /**
+     Prints the request info.
+     - parameter url: Request url.
+     - parameter body: Optional body.
+     */
     func printRequest(url: String, body: [String: AnyObject]? = nil) {
         var bodyInfo = ""
         if let body = body, !body.isEmpty {
@@ -121,9 +165,17 @@ public extension HttpEndpoint {
     }
 }
 
+// MARK: - Private helper methods.
 private extension HttpEndpoint {
+    
+    /**
+     Generates a raw bytes Http header.
+     - parameter params: Optional body params.
+     - throws
+     - returns Optional `Data` instance.
+     */
     func data(from params: [String: AnyObject]? = nil) throws -> Data? {
-        guard let params = params else {
+        guard let params else {
             return nil
         }
         
@@ -136,14 +188,13 @@ private extension HttpEndpoint {
                 .map { "\($0.key)=\($0.value)" }
                 .joined(separator: "&")
                 .data(using: .utf8)
-        case .multipart:
+        case .multipart, .custom:
             return nil
         }
     }
-}
-
-private extension HttpEndpoint {
-    func userAgentValue() -> String {
+    
+    /// User-Agent value.
+    var userAgentValue: String {
         "ios;\(Device.appVersion)"
     }
 }

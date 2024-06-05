@@ -54,7 +54,7 @@ public extension HttpClient {
         let url = endpoint.kind == .auth ? authURL : apiURL
         endpoint.printRequest(url: url)
         
-        return createRequest(url: url, endpoint: endpoint, authType: authType, multipart: true)
+        return createRequest(url: url, endpoint: endpoint, authType: authType)
             .flatMap(performRequest)
             .eraseToAnyPublisher()
     }
@@ -75,17 +75,16 @@ private extension HttpClient {
     func createRequest(url: String,
                        endpoint: HttpEndpoint,
                        body: [String: AnyObject]? = nil,
-                       authType: AuthorizationType = .access,
-                       multipart: Bool = false) -> AnyPublisher<URLRequest, HttpError> {
+                       authType: AuthorizationType = .access) -> AnyPublisher<URLRequest, HttpError> {
         switch authType {
         case .no:
-            return createGeneralRequest(url: url, endpoint: endpoint, body: body)
+            createGeneralRequest(url: url, endpoint: endpoint, body: body)
         case .basic(let token):
-            return createBasicRequest(url: url, endpoint: endpoint, body: body, token: token)
+            createBasicRequest(url: url, endpoint: endpoint, body: body, token: token)
         case .client:
-            return createClientRequest(url: url, endpoint: endpoint, body: body)
+            createClientRequest(url: url, endpoint: endpoint, body: body)
         case .access:
-            return createAccessRequest(url: url, endpoint: endpoint, body: body, multipart: multipart)
+            createAccessRequest(url: url, endpoint: endpoint, body: body)
         }
     }
     
@@ -128,16 +127,11 @@ private extension HttpClient {
     
     func createAccessRequest(url: String,
                              endpoint: HttpEndpoint,
-                             body: [String: AnyObject]? = nil,
-                             multipart: Bool = false) -> AnyPublisher<URLRequest, HttpError> {
+                             body: [String: AnyObject]? = nil) -> AnyPublisher<URLRequest, HttpError> {
         tokenProvider
             .fetchToken()
             .tryMap { token in
-                if multipart {
-                    return try endpoint.multipartRequest(baseURL: url, authorizationHeader: .bearer(token: token.value))
-                } else {
-                    return try endpoint.urlRequest(baseURL: url, body: body, authorizationHeader: .bearer(token: token.value))
-                }
+                return try endpoint.urlRequest(baseURL: url, body: body, authorizationHeader: .bearer(token: token.value))
             }
             .mapError { _ in HttpError.invalidRequest }
             .eraseToAnyPublisher()
