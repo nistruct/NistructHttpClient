@@ -5,12 +5,19 @@
 //  Copyright © 2020 Nistruct. All rights reserved.
 //
 
+import Foundation
+
+#if canImport(UIKit)
 import UIKit
+#endif
 
 struct Device {
+    
+#if canImport(UIKit)
     static var osVersion: String {
         UIDevice.current.systemVersion
     }
+#endif
     
     static var appVersionAndBundle: String {
         let version = Bundle.main.infoDictionary?[PlistKeys.BundleShortVersion] as? String ?? Constants.Unknown
