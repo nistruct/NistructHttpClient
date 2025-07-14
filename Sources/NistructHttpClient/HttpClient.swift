@@ -184,11 +184,12 @@ private extension Publisher where Output == URLSession.DataTaskPublisher.Output 
             }
             
             if $0.data.isEmpty, let data = "{}".data(using: .utf8) {
-                return data
+                return (data, statusCode)
             }
-            return $0.data
+            return ($0.data, statusCode)
         }
         .printResponse(url: url)
+        .map { $0.0 }
         .decode(type: T.self, decoder: JSONDecoder())
         .receive(on: DispatchQueue.main)
         .eraseToAnyPublisher()
@@ -206,11 +207,12 @@ private extension Publisher where Output == URLSession.DataTaskPublisher.Output 
             }
             
             if $0.data.isEmpty, let data = "{}".data(using: .utf8) {
-                return data
+                return (data, statusCode)
             }
-            return $0.data
+            return ($0.data, statusCode)
         }
         .printResponse(url: url)
+        .map { $0.0 }
         .decode(type: ApiResponse<T>.self, decoder: JSONDecoder())
         .tryMap {
             guard let data = $0.data else {
@@ -226,9 +228,9 @@ private extension Publisher where Output == URLSession.DataTaskPublisher.Output 
     }
 }
 
-extension Publisher where Output == Data {
-    func printResponse(url: URL? = nil) -> AnyPublisher<Data, Failure> {
-        handleEvents(receiveOutput: { data in
+extension Publisher where Output == (Data, Int) {
+    func printResponse(url: URL? = nil) -> AnyPublisher<(Data, Int), Failure> {
+        handleEvents(receiveOutput: { (data, statusCode) in
             guard let json = data.toJson() else {
                 return
             }
@@ -236,6 +238,7 @@ extension Publisher where Output == Data {
             let info = """
                     \n----API RESPONSE----
                     Url: \(url?.absoluteString ?? "")
+                    Status code: \(statusCode)
                     Response:
                     \(json)
                     ----API RESPONSE----\n
